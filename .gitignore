@@ -1,6 +1,7 @@
 .terraform
 .terraform*
 *tfstate*
+*.tfvars
 *.json
 .history
 *.out
