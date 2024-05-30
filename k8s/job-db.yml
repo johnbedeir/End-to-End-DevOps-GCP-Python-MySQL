@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-db-tables
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-init
+        image: gcr.io/johnydev/todo-db-img:latest # Replace with your Docker image
+        env:
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: rds-endpoint
+                key: endpoint
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: rds-username
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rds-password
+                key: password
+          - name: DB_DATABASE
+            value: todo_db
+      restartPolicy: Never
+  backoffLimit: 4
