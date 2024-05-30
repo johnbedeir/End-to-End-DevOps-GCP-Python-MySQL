@@ -22,3 +22,19 @@ variable "environment" {
   type    = string
   default = "testing-env"
 }
+
+variable "db_username" {
+  description = "The database username"
+  type        = string
+}
+
+variable "cloudsql_name" {
+  description = "The google cloudsql name"
+  type        = string
+  default     = "cloudsql"
+}
+
+variable "gke_service_account_email" {
+  description = "The email of the service account to grant Cloud SQL client role"
+  type        = string
+}
