@@ -2,14 +2,12 @@
 variable "project_id" {
   description = "The name of the VPC to use."
   type        = string
-  default     = "johnydev"
 }
 
 
 variable "region" {
   description = "The name of the VPC to use."
   type        = string
-  default     = "europe-west1"
 }
 
 variable "name_prefix" {
@@ -28,6 +26,11 @@ variable "db_username" {
   type        = string
 }
 
+variable "database_name" {
+  description = "The database username"
+  type        = string
+}
+
 variable "cloudsql_name" {
   description = "The google cloudsql name"
   type        = string
@@ -38,3 +41,5 @@ variable "gke_service_account_email" {
   description = "The email of the service account to grant Cloud SQL client role"
   type        = string
 }
+
+
