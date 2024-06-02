@@ -18,7 +18,7 @@ resource "google_sql_database_instance" "instance" {
 }
 
 resource "google_sql_database" "database" {
-  name     = "my-database"
+  name     = var.database_name
   instance = google_sql_database_instance.instance.name
 }
 
