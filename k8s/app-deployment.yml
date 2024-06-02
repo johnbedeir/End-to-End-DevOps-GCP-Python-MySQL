@@ -21,17 +21,17 @@ spec:
           - name: DB_HOST
             valueFrom:
               secretKeyRef:
-                name: rds-endpoint
+                name: sql-endpoint
                 key: endpoint
           - name: DB_USER
             valueFrom:
               secretKeyRef:
-                name: rds-username
+                name: db-username
                 key: username
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: rds-password
+                name: db-password
                 key: password
           - name: DB_DATABASE
             value: todo_db
