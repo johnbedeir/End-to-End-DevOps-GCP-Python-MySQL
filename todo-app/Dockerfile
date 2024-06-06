@@ -8,6 +8,6 @@ RUN pip install --upgrade pip
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 6000
+EXPOSE 5000
 
 CMD ["python", "./app.py"]
