@@ -18,6 +18,12 @@ variable "kube_monitoring_stack_values" {
           memory: "200Mi"
 
     alertmanager:
+      alertmanagerSpec:
+        replicas: 2  # Number of Alertmanager replicas for clustering
+        clusterPeerTimeout: 15s
+        clusterListenAddress: "0.0.0.0:9093"
+        clusterPeers:  
+          - kube-prometheus-stack-alertmanager.alertmanager.monitoring.svc:9093
       enabled: true
       service:
         type: LoadBalancer
@@ -81,6 +87,22 @@ variable "kube_monitoring_stack_values" {
         limits:
           cpu: "200m"
           memory: "200Mi"
+          
+    prometheusRule:
+      additionalPrometheusRules:
+        - name: custom-alert-rules
+          groups:
+            - name: custom.rules
+              rules:
+                - alert: TargetDown
+                  expr: 100 * (count by (job, namespace, service) (up == 0) / count by (job, namespace, service) (up)) > 10
+                  for: 10m
+                  labels:
+                    severity: warning
+                  annotations:
+                    description: '{{ printf "%.4g" $value }}% of the {{ $labels.job }}/{{ $labels.service }} targets in {{ $labels.namespace }} namespace are down.'
+                    runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/targetdown
+                    summary: One or more targets are unreachable.
     EOF
 }
 
