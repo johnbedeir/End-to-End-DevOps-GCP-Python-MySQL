@@ -15,9 +15,8 @@ prometheus_svc="kube-prometheus-stack-prometheus"
 grafana_svc="kube-prometheus-stack-grafana"
 cd terraform
 cloudsql_public_ip="$(terraform output -raw cloudsql_public_ip)"
-terraform_output=$(terraform output -json)
 cloudsecretname="$(terraform output -raw cloud_sql_name)"
-zone=$(echo $terraform_output | jq -r .cluster_zone.value)
+zone=$(terraform output -json | jq -r .cluster_zone.value)
 cluster_name="$(terraform output -raw cluster_name)"
 dbendpoint="$(terraform output -raw public_ip)"
 dbusername="$(terraform output -raw db_username)"
@@ -30,78 +29,82 @@ db_image_name="gcr.io/${project_id}/${db_repo_name}:latest"
 cd ..
 # End Variables
 
-# update helm repos
-helm repo update
+# # update helm repos
+# helm repo update
 
-# Google cloud authentication
-echo "--------------------GCP Login--------------------"
-gcloud auth login
+# # Google cloud authentication
+# echo "--------------------GCP Login--------------------"
+# gcloud auth login
 
-# Check if there are any keys to delete
-if [ -z "$key_ids" ]; then
-    echo "No keys found for service account: $service_account_email"
-    exit 0
-fi
+# # Check if there are any keys to delete
+# if [ -z "$key_ids" ]; then
+#     echo "No keys found for service account: $service_account_email"
+#     exit 0
+# fi
 
-# Loop through each key ID and delete the key
-for key_id in $key_ids; do
-    echo "Deleting key $key_id for service account: $service_account_email"
-    gcloud iam service-accounts keys delete $key_id --iam-account=$service_account_email --quiet
-done
+# # Loop through each key ID and delete the key
+# for key_id in $key_ids; do
+#     echo "Deleting key $key_id for service account: $service_account_email"
+#     gcloud iam service-accounts keys delete $key_id --iam-account=$service_account_email --quiet
+# done
 
-# Get GCP credentials
-echo "--------------------Get Credentials--------------------"
-gcloud iam service-accounts keys create terraform/${filename} --iam-account ${service_account_email}
+# # Get GCP credentials
+# echo "--------------------Get Credentials--------------------"
+# gcloud iam service-accounts keys create terraform/${filename} --iam-account ${service_account_email}
 
-# Build the infrastructure
-echo "--------------------Creating GKE--------------------"
-echo "--------------------Creating GCR--------------------"
-echo "--------------------Deploying Monitoring--------------------"
-cd terraform && \ 
-terraform init 
-terraform apply -auto-approve
-cd ..
+# # Build the infrastructure
+# echo "--------------------Creating GKE--------------------"
+# echo "--------------------Creating GCR--------------------"
+# echo "--------------------Deploying Monitoring--------------------"
+# cd terraform && \ 
+# terraform init 
+# terraform apply -auto-approve
+# cd ..
 
-# Update kubeconfig
-echo "--------------------Update Kubeconfig--------------------"
-gcloud container clusters get-credentials ${cluster_name} --zone ${zone} --project ${project_id}
+# # Wait before updating kubeconfig
+# echo "--------------------Wait before updating kubeconfig--------------------"
+# sleep 30s
 
-remove preious docker images
-echo "--------------------Remove Previous build--------------------"
-docker rmi -f ${app_image_name} || true
-docker rmi -f ${db_image_name} || true
+# # Update kubeconfig
+# echo "--------------------Update Kubeconfig--------------------"
+# gcloud container clusters get-credentials ${cluster_name} --zone ${zone} --project ${project_id}
 
-# build new docker image with new tag
-echo "--------------------Build new Image--------------------"
-docker build -t ${app_image_name} ./todo-app
-docker build -f k8s/Dockerfile.mysql -t ${db_image_name} k8s
+# remove preious docker images
+# echo "--------------------Remove Previous build--------------------"
+# docker rmi -f ${app_image_name} || true
+# docker rmi -f ${db_image_name} || true
 
-#GCR Authentication
-echo "--------------------Authenticate Docker with GCR--------------------"
-gcloud auth configure-docker
+# # build new docker image with new tag
+# echo "--------------------Build new Image--------------------"
+# docker build -t ${app_image_name} ./todo-app
+# docker build -f k8s/Dockerfile.mysql -t ${db_image_name} k8s
 
-# push the latest build to dockerhub
-echo "--------------------Pushing Docker Image--------------------"
-docker push ${app_image_name}
-docker push ${db_image_name}
+# #GCR Authentication
+# echo "--------------------Authenticate Docker with GCR--------------------"
+# gcloud auth configure-docker
 
-# create app_namespace
-echo "--------------------creating Namespace--------------------"
-kubectl create ns ${app_namespace} || true
+# # push the latest build to dockerhub
+# echo "--------------------Pushing Docker Image--------------------"
+# docker push ${app_image_name}
+# docker push ${db_image_name}
 
-# Store the generated password in k8s secrets
-echo "--------------------Store the generated password in k8s secret--------------------"
-kubectl create secret generic ${cloudsql_endpoint} --from-literal=endpoint=${dbendpoint} --namespace=${app_namespace} || true
-kubectl create secret generic ${dbsecretusername} --from-literal=username=${dbusername} --namespace=${app_namespace} || true
-kubectl create secret generic ${dbsecretname} --from-literal=password=${db_generated_password} --namespace=${app_namespace} || true
+# # create app_namespace
+# echo "--------------------creating Namespace--------------------"
+# kubectl create ns ${app_namespace} || true
 
-# Deploy the application
-echo "--------------------Deploy App--------------------"
-kubectl apply -n ${app_namespace} -f k8s
+# # Store the generated password in k8s secrets
+# echo "--------------------Store the generated password in k8s secret--------------------"
+# kubectl create secret generic ${cloudsql_endpoint} --from-literal=endpoint=${dbendpoint} --namespace=${app_namespace} || true
+# kubectl create secret generic ${dbsecretusername} --from-literal=username=${dbusername} --namespace=${app_namespace} || true
+# kubectl create secret generic ${dbsecretname} --from-literal=password=${db_generated_password} --namespace=${app_namespace} || true
 
-# Wait for application to be deployed
-echo "--------------------Wait for all pods to be running--------------------"
-sleep 90s
+# # Deploy the application
+# echo "--------------------Deploy App--------------------"
+# kubectl apply -n ${app_namespace} -f k8s
+
+# # Wait for application to be deployed
+# echo "--------------------Wait for all pods to be running--------------------"
+# sleep 90s
 
 echo ""
 echo "Cloud_SQL: " ${cloudsql_public_ip}
