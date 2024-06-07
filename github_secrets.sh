@@ -6,11 +6,14 @@ repo="End-to-End-DevOps-GCP-Python-MySQL"
 app_repo_name="todo-app-img"
 db_repo_name="todo-db-img"
 cluster_name="cluster-1-testing-env"
-zone="$(terraform output -raw first_zone)"
 project_id="johnydev"
 service_account_email="terraform-sa@${project_id}.iam.gserviceaccount.com"
 key_ids=$(gcloud iam service-accounts keys list --iam-account=$service_account_email --format="value(name)")
 filename="gcp-credentials.json"
+cd terraform &&
+zone="$(terraform output -json | jq -r .cluster_zone.value)"
+cd ..
+
 
 # Check if there are any keys to delete
 if [ -z "$key_ids" ]; then
