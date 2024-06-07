@@ -15,6 +15,7 @@ resource "google_sql_database_instance" "instance" {
       }
     }
   }
+  deletion_protection = false
 }
 
 resource "google_sql_database" "database" {
