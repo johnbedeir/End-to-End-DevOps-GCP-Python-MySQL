@@ -24,7 +24,7 @@ jobs:
         env:
           IMAGE_TAG: latest
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.APP_GCR_REPOSITORY }}:$IMAGE_TAG .
-          docker build -f k8s/Dockerfile.mysql -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.JOB_GCR_REPOSITORY }}:$IMAGE_TAG k8s
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.APP_GCR_REPOSITORY }}:$IMAGE_TAG todo-app/
+          docker build -f k8s/Dockerfile.mysql -t gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.JOB_GCR_REPOSITORY }}:$IMAGE_TAG k8s/
           docker push gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.APP_GCR_REPOSITORY }}:$IMAGE_TAG
           docker push gcr.io/${{ secrets.GCP_PROJECT }}/${{ secrets.JOB_GCR_REPOSITORY }}:$IMAGE_TAG
